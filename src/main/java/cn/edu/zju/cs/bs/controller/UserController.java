@@ -8,11 +8,14 @@ import cn.edu.zju.cs.bs.utils.ThreadLoaclUtil;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static cn.edu.zju.cs.bs.utils.ThreadLoaclUtil.get;
 
@@ -23,6 +26,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     @GetMapping("/info")
     public Result<User> getUserInfo(/*@RequestHeader(name = "Authorization") String token*/) {
@@ -60,6 +66,10 @@ public class UserController {
             userInfos.put("id", user.getId());
             userInfos.put("username", user.getUsername());
             String token = JwtUtil.genToken(userInfos);
+            //把token存到redis
+            ValueOperations<String, String> operations = stringRedisTemplate.opsForValue();
+            operations.set(token, token, 6, TimeUnit.HOURS);
+
             return new Result(1, "登录成功", token);
         }else{
             return new Result(0, "密码错误", null);
@@ -90,6 +100,8 @@ public class UserController {
             return new Result(0, "输入的旧密码错误", null);
         }
         userService.updatePassword(username, oldPassword, newPassword);
+        ValueOperations<String, String> ops = stringRedisTemplate.opsForValue();
+        ops.getOperations().delete(token);
         return new Result(1, "密码修改成功", null);
     }
 }
