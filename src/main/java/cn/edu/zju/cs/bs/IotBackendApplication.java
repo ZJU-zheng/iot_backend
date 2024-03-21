@@ -9,5 +9,4 @@ public class IotBackendApplication {
     public static void main(String[] args) {
         SpringApplication.run(IotBackendApplication.class, args);
     }
-
 }

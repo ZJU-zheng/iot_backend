@@ -2,6 +2,7 @@ package cn.edu.zju.cs.bs.interceptors;
 
 import cn.edu.zju.cs.bs.pojo.Result;
 import cn.edu.zju.cs.bs.utils.JwtUtil;
+import cn.edu.zju.cs.bs.utils.ThreadLoaclUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
@@ -17,10 +18,18 @@ public class LoginInterceptor implements HandlerInterceptor {
         String token = request.getHeader("Authorization");
         try {
             Map<String, Object> userInfos = JwtUtil.parseToken(token);
+
+            ThreadLoaclUtil.set(userInfos);
+
             return true;
         } catch (Exception e) {
             response.setStatus(401);
             return false;
         }
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        ThreadLoaclUtil.remove();
     }
 }

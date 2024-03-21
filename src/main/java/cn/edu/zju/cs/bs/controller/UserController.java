@@ -4,6 +4,7 @@ import cn.edu.zju.cs.bs.pojo.Result;
 import cn.edu.zju.cs.bs.pojo.User;
 import cn.edu.zju.cs.bs.service.UserService;
 import cn.edu.zju.cs.bs.utils.JwtUtil;
+import cn.edu.zju.cs.bs.utils.ThreadLoaclUtil;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static cn.edu.zju.cs.bs.utils.ThreadLoaclUtil.get;
 
 @RestController
 @RequestMapping("/user")
@@ -22,9 +25,11 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/info")
-    public Result<User> getUserInfo(@RequestHeader(name = "Authorization") String token) {
-        Map<String, Object> userInfos = JwtUtil.parseToken(token);
-        String username = (String)userInfos.get("username");
+    public Result<User> getUserInfo(/*@RequestHeader(name = "Authorization") String token*/) {
+//        Map<String, Object> userInfos = JwtUtil.parseToken(token);
+//        String username = (String)userInfos.get("username");
+        Map<String, Object> map = ThreadLoaclUtil.get();
+        String username = (String) map.get("username");
         User user = userService.selectByUsername(username);
         return new Result(1, "用户信息查询成功", user);
     }
